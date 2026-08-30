@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>網路銀行</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: #f4f6f8;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      background: linear-gradient(180deg, #e6f7f5 0%, #ffffff 30%, #f4f6f8 100%);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 75px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.05);
+      min-height: 100vh;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .header-icons span {
+      margin-left: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .user-profile {
+      padding: 10px 20px;
+      position: relative;
+    }
+
+    .greeting-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .greeting {
+      font-size: 18px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .player-title-badge {
+      background: #00a88f;
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .asset-privacy {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #666;
+      font-size: 13px;
+    }
+
+    /* 調整後：吉祥物點擊區移至頁面中間卡片樣式 */
+    .mascot-area-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px 0 16px 0;
+    }
+
+    .mascot-area {
+      position: relative;
+      text-align: center;
+      cursor: pointer;
+      padding: 15px 30px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+      border: 1px dashed #00a88f;
+      /* 專屬極速連點優化：完全禁用所有長按、拖曳、雙擊放大等手勢干擾 */
+      touch-action: none !important;
+      -webkit-user-select: none;
+      user-select: none;
+      transition: transform 0.02s cubic-bezier(0,0,0.2,1);
+    }
+
+    .mascot-area:active {
+      transform: scale(0.94);
+    }
+
+    .mascot-bubble {
+      font-size: 12px;
+      font-weight: bold;
+      color: #00a88f;
+      background: rgba(255,255,255,0.9);
+      padding: 3px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 6px;
+      pointer-events: none;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .mascot-img {
+      width: 80px;
+      height: 80px;
+      background: #00a88f;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      box-shadow: 0 6px 16px rgba(0,168,143,0.35);
+      margin: 0 auto;
+      pointer-events: none;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 0 16px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: bold;
+      color: #111;
+    }
+
+    .card-amount {
+      font-size: 22px;
+      font-weight: bold;
+      color: #00a88f;
+    }
+
+    .card-subtext {
+      font-size: 13px;
+      color: #888;
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+      font-size: 13px;
+      color: #00a88f;
+      font-weight: 600;
+    }
+
+    .card-btn {
+      cursor: pointer;
+    }
+
+    .adjust-display {
+      text-align: center;
+      color: #00a88f;
+      font-size: 13px;
+      font-weight: 600;
+      margin: 15px 0;
+      cursor: pointer;
+    }
+
+    /* 商店列表 */
+    .shop-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .shop-item:last-child {
+      border-bottom: none;
+    }
+
+    .item-info {
+      flex: 1;
+    }
+
+    .item-name {
+      font-size: 15px;
+      font-weight: bold;
+      color: #222;
+    }
+
+    .item-desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .item-cost {
+      font-size: 12px;
+      color: #e65100;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .buy-btn {
+      background-color: #00a88f;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .buy-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .transfer-btn {
+      touch-action: none;
+      user-select: none;
+    }
+
+    .transfer-btn:active {
+      transform: scale(0.92);
+    }
+
+    .item-count {
+      font-size: 11px;
+      color: #888;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    /* 排行榜與成就列表 */
+    .leaderboard-item, .achievement-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .leaderboard-item.is-player {
+      background-color: #e6f7f5;
+      margin: 0 -18px;
+      padding: 12px 18px;
+      border-left: 4px solid #00a88f;
+      font-weight: bold;
+    }
+
+    .rank-num {
+      width: 36px;
+      font-weight: bold;
+      font-size: 15px;
+      color: #666;
+      text-align: center;
+    }
+
+    .rank-num.top3 {
+      color: #e65100;
+      font-size: 18px;
+    }
+
+    .leaderboard-info, .achievement-info {
+      flex: 1;
+      margin-left: 8px;
+    }
+
+    .leaderboard-name, .achievement-title {
+      font-size: 14px;
+      color: #222;
+      font-weight: bold;
+    }
+
+    .leaderboard-category, .achievement-desc {
+      font-size: 11px;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .leaderboard-wealth {
+      font-size: 14px;
+      font-weight: bold;
+      color: #00a88f;
+    }
+
+    .achievement-icon {
+      font-size: 24px;
+      width: 36px;
+      text-align: center;
+    }
+
+    .achievement-status {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      background: #eee;
+      color: #888;
+    }
+
+    .achievement-status.unlocked {
+      background: #e6f7f5;
+      color: #00a88f;
+      font-weight: bold;
+    }
+
+    .name-input-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .name-input {
+      flex: 1;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      max-width: 430px;
+      height: 60px;
+      background: #ffffff;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #eaeaea;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.03);
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 11px;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: #00a88f;
+      font-weight: bold;
+    }
+
+    .nav-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .click-effect {
+      position: absolute;
+      color: #00a88f;
+      font-weight: bold;
+      font-size: 18px;
+      pointer-events: none;
+      animation: floatUp 0.4s ease-out forwards;
+      z-index: 99;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-25px); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <div class="header-bar">
+      <span>11:32 📱 5G</span>
+      <div class="header-icons">
+        <span onclick="saveGame(true)" title="儲存遊戲">💾</span>
+        <span onclick="resetGame()" title="重置進度">🔄</span>
+        <span>🔍</span>
+      </div>
+    </div>
+
+    <div class="user-profile">
+      <div class="greeting-container">
+        <div class="greeting" id="greetingText">午安，尊榮貴賓</div>
+        <span class="player-title-badge" id="equippedTitleBadge" style="display:none;">平民</span>
+      </div>
+      <div class="asset-privacy">資產總額 👁️ | 金融聲望: <span id="prestigePointsDisplay" style="color:#e65100; font-weight:bold;">0</span></div>
+    </div>
+
+    <div id="tab-home" class="tab-content active">
+      
+      <!-- 吉祥物點擊區（已移至頁面中央大目標區） -->
+      <div class="mascot-area-container">
+        <div class="mascot-area" id="clickArea">
+          <div class="mascot-bubble">⚡ 快速存款點擊區 ⤵</div>
+          <div class="mascot-img">🐱</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">臺幣總資產</span>
+          <span class="card-title">▶</span>
+        </div>
+        <div class="card-amount" id="totalAssets">$ 0</div>
+        <div class="card-subtext">
+          <span>活期存款</span>
+          <span id="subAssets">$ 0</span>
+        </div>
+        <div class="card-actions">
+          <span class="card-btn" onclick="fakeAction('查看明細')">看明細</span>
+          <span style="color:#ccc">|</span>
+          <span class="card-btn" onclick="fakeAction('轉帳服務')">轉帳</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">即時被動收益 (每秒)</span>
+          <span class="card-title">▶</span>
+        </div>
+        <div class="card-amount" style="color: #e65100;" id="cpsDisplay">$ 0 /s</div>
+        <div class="card-subtext">
+          <span>單次點擊產出</span>
+          <span id="cpcDisplay">$ 1</span>
+        </div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(135deg, #fff 0%, #fff8e1 100%); border: 1px solid #ffe082;">
+        <div class="card-title-row">
+          <span class="card-title" style="color: #d84315;">🏛️ 創立金融集團 (轉生)</span>
+        </div>
+        <div style="font-size: 12px; color: #666; margin-bottom: 10px;">
+          重置資產與理財商品，轉換為「金融聲望」（每點聲望永久提供 +10% 收益加成）。<br>
+          <span style="color:#d84315; font-weight:bold;">解鎖門檻：$ 10,000,000,000 (100億)</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size: 13px; font-weight: bold;">預計可獲得聲望: <span id="pendingPrestigeDisplay" style="color:#e65100;">0</span></div>
+          <button id="prestigeBtn" class="buy-btn" style="background-color: #d84315;" onclick="doPrestige()" disabled>創立集團</button>
+        </div>
+      </div>
+
+      <div class="adjust-display" onclick="fakeAction('調整顯示順序')">⇅ 調整顯示內容</div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">權益優惠</span>
+          <span class="card-title">▶</span>
+        </div>
+        <div class="card-subtext" style="margin-top:0; align-items: center;">
+          <div>
+            <span>免費跨轉次數</span>
+            <div style="font-size:11px; color:#00a88f; font-weight:bold; margin-top:2px;">
+              目前剩餘: <span id="transferCountDisplay">0</span> 次
+            </div>
+          </div>
+          <button id="transferClaimBtn" class="buy-btn transfer-btn" style="padding: 6px 12px;">領次數</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-shop" class="tab-content">
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">申購金融產品</span>
+        </div>
+        <div id="shopList"></div>
+      </div>
+    </div>
+
+    <div id="tab-rank" class="tab-content">
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">客戶名稱設定</span>
+        </div>
+        <div class="name-input-group">
+          <input type="text" id="playerNameInput" class="name-input" maxlength="12" placeholder="輸入您的稱呼...">
+          <button class="buy-btn" onclick="updatePlayerName()">更新名稱</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">全球富豪富比士榜</span>
+        </div>
+        <div id="playerRankStatus" style="font-size: 13px; color: #00a88f; font-weight: bold; margin-bottom: 10px;">
+          載入排名中...
+        </div>
+        <div id="leaderboardList"></div>
+      </div>
+    </div>
+
+    <div id="tab-achievement" class="tab-content">
+      <div class="card">
+        <div class="card-title-row">
+          <span class="card-title">榮耀成就與稱號</span>
+        </div>
+        <div id="achievementList"></div>
+      </div>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('home', this)">
+        <span class="nav-icon">👤</span>
+        <span>我的</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('shop', this)">
+        <span class="nav-icon">🏛️</span>
+        <span>理財</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('rank', this)">
+        <span class="nav-icon">🏆</span>
+        <span>排名</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('achievement', this)">
+        <span class="nav-icon">🏅</span>
+        <span>成就</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let playerName = "尊榮貴賓";
+    let assets = 0;
+    let totalClicks = 0;
+    let baseCPC = 1;
+    let baseCPS = 0;
+    let multiplier = 1.0;
+
+    let prestigePoints = 0;
+    let freeTransferCount = 0;
+    let equippedTitle = "";
+
+    const defaultProducts = [
+      { id: 0, name: "零錢儲蓄罐", cost: 15, cpc: 1, cps: 0, mult: 0, count: 0, desc: "提升每次點擊收益 +$1" },
+      { id: 1, name: "高利活期存款", cost: 100, cpc: 0, cps: 2, mult: 0, count: 0, desc: "每秒自動利息 +$2" },
+      { id: 2, name: "定期零存整付", cost: 500, cpc: 5, cps: 4, mult: 0, count: 0, desc: "點擊 +$5，每秒 +$4" },
+      { id: 3, name: "儲蓄型壽險", cost: 2000, cpc: 0, cps: 15, mult: 0.01, count: 0, desc: "每秒 +$15，總收益 +1%" },
+      { id: 4, name: "中央政府債券", cost: 8000, cpc: 25, cps: 40, mult: 0, count: 0, desc: "點擊 +$25，每秒 +$40" },
+      { id: 5, name: "藍籌股股票基金", cost: 30000, cpc: 0, cps: 150, mult: 0.02, count: 0, desc: "每秒 +$150，總收益 +2%" },
+      { id: 6, name: "外匯套利組合", cost: 100000, cpc: 150, cps: 400, mult: 0, count: 0, desc: "點擊 +$150，每秒 +$400" },
+      { id: 7, name: "不動產投資信託(REITs)", cost: 400000, cpc: 0, cps: 1200, mult: 0.05, count: 0, desc: "每秒 +$1200，總收益 +5%" },
+      { id: 8, name: "私募股權基金", cost: 2000000, cpc: 1000, cps: 5000, mult: 0.08, count: 0, desc: "點擊 +$1000，每秒 +$5000，總收益 +8%" },
+      { id: 9, name: "對沖基金量化交易", cost: 10000000, cpc: 5000, cps: 25000, mult: 0.15, count: 0, desc: "點擊 +$5000，每秒 +$25000，總收益 +15%" }
+    ];
+
+    let financialProducts = JSON.parse(JSON.stringify(defaultProducts));
+
+    const achievementDefs = [
+      { id: "click_100", title: "手速入門", rewardTitle: "快手客", desc: "累積點擊達到 100 次", reqType: "clicks", reqVal: 100 },
+      { id: "click_1000", title: "點擊達人", rewardTitle: "連點大師", desc: "累積點擊達到 1,000 次", reqType: "clicks", reqVal: 1000 },
+      { id: "asset_10k", title: "第一桶金", rewardTitle: "萬元戶", desc: "總資產達到 $10,000", reqType: "assets", reqVal: 10000 },
+      { id: "asset_1m", title: "百萬富翁", rewardTitle: "資產新貴", desc: "總資產達到 $1,000,000", reqType: "assets", reqVal: 1000000 },
+      { id: "asset_1b", title: "億萬富豪", rewardTitle: "富甲一方", desc: "總資產達到 $1,000,000,000", reqType: "assets", reqVal: 1000000000 },
+      { id: "transfer_1", title: "好奇心害死貓", rewardTitle: "執著狂", desc: "領取第 1 次跨轉優惠", reqType: "transfer", reqVal: 1 },
+      { id: "transfer_50", title: "這是垃圾話時間", rewardTitle: "刷次數達人", desc: "累積領取 50 次跨轉優惠", reqType: "transfer", reqVal: 50 },
+      { id: "transfer_500", title: "無聊至極", rewardTitle: "挑戰系統極限", desc: "累積領取 500 次跨轉優惠", reqType: "transfer", reqVal: 500 },
+      { id: "rank_10", title: "躋身前十", rewardTitle: "名流圈新星", desc: "全球富豪榜排名進入前 10 名", reqType: "rank", reqVal: 10 },
+      { id: "rank_1", title: "登頂世界之巔", rewardTitle: "世界首富", desc: "榮登全球富豪榜第 1 名", reqType: "rank", reqVal: 1 },
+      { id: "prestige_1", title: "資本大鱷", rewardTitle: "金融巨擘", desc: "首次創立金融集團 (轉生)", reqType: "prestige", reqVal: 1 }
+    ];
+
+    let unlockedAchievements = [];
+
+    const baseNPCs = [
+      { name: "馬斯克", cat: "科技業", wealth: 210000000000, growth: 500000 },
+      { name: "貝佐斯", cat: "電商巨頭", wealth: 180000000000, growth: 400000 },
+      { name: "黃仁勳", cat: "科技業", wealth: 120000000000, growth: 350000 },
+      { name: "巴菲特", cat: "金融投資", wealth: 110000000000, growth: 250000 },
+      { name: "扎克伯格", cat: "社群媒體", wealth: 100000000000, growth: 300000 },
+      { name: "庫克", cat: "科技業", wealth: 50000000000, growth: 100000 },
+      { name: "蘇姿丰", cat: "半導體", wealth: 30000000000, growth: 80000 },
+      { name: "張忠謀", cat: "半導體", wealth: 20000000000, growth: 50000 },
+      { name: "泰勒絲", cat: "流行音樂", wealth: 1100000000, growth: 15000 },
+      { name: "C羅", cat: "足球", wealth: 800000000, growth: 12000 },
+      { name: "梅西", cat: "足球", wealth: 650000000, growth: 10000 },
+      { name: "詹姆斯", cat: "籃球", wealth: 1000000000, growth: 11000 },
+      { name: "柯瑞", cat: "籃球", wealth: 300000000, growth: 5000 },
+      { name: "大谷翔平", cat: "棒球", wealth: 250000000, growth: 4500 },
+      { name: "漢米爾頓", cat: "F1賽車", wealth: 300000000, growth: 4000 },
+      { name: "維斯塔潘", cat: "F1賽車", wealth: 210000000, growth: 5000 },
+      { name: "馬克·馬爾克斯", cat: "MotoGP", wealth: 150000000, growth: 3000 },
+      { name: "羅西", cat: "MotoGP", wealth: 200000000, growth: 2000 },
+      { name: "費德勒", cat: "網球", wealth: 550000000, growth: 6000 },
+      { name: "喬科維奇", cat: "網球", wealth: 240000000, growth: 3500 },
+      { name: "納達爾", cat: "網球", wealth: 220000000, growth: 3000 },
+      { name: "湯姆·克魯斯", cat: "好萊塢巨星", wealth: 600000000, growth: 5000 },
+      { name: "巨石強森", cat: "好萊塢巨星", wealth: 800000000, growth: 8000 },
+      { name: "基努·李維", cat: "好萊塢巨星", wealth: 380000000, growth: 3000 },
+      { name: "小勞勃·道尼", cat: "好萊塢巨星", wealth: 300000000, growth: 3500 },
+      { name: "周杰倫", cat: "華語流行樂", wealth: 330000000, growth: 4000 },
+      { name: "蔡依林", cat: "華語流行樂", wealth: 100000000, growth: 2000 },
+      { name: "李安", cat: "電影導演", wealth: 50000000, growth: 800 },
+      { name: "斯皮爾伯格", cat: "電影導演", wealth: 4800000000, growth: 20000 },
+      { name: "拜登", cat: "政治人物", wealth: 10000000, growth: 100 },
+      { name: "川普", cat: "政商名人", wealth: 2600000000, growth: 15000 },
+      { name: "馬克宏", cat: "國家領袖", wealth: 5000000, growth: 80 },
+      { name: "孫正義", cat: "風險投資", wealth: 23000000000, growth: 60000 },
+      { name: "馬雲", cat: "網路電商", wealth: 30000000000, growth: 70000 },
+      { name: "馬化騰", cat: "網路社交", wealth: 35000000000, growth: 80000 },
+      { name: "李嘉誠", cat: "地產地產", wealth: 38000000000, growth: 90000 },
+      { name: "林書豪", cat: "籃球", wealth: 40000000, growth: 500 },
+      { name: "陽岱鋼", cat: "棒球", wealth: 15000000, growth: 300 },
+      { name: "戴資穎", cat: "羽球", wealth: 8000000, growth: 200 },
+      { name: "莊智淵", cat: "桌球", wealth: 5000000, growth: 100 },
+      { name: "姆巴佩", cat: "足球", wealth: 180000000, growth: 4000 },
+      { name: "內馬爾", cat: "足球", wealth: 250000000, growth: 4500 },
+      { name: "阿隆索", cat: "F1賽車", wealth: 260000000, growth: 3000 },
+      { name: "勒克萊爾", cat: "F1賽車", wealth: 50000000, growth: 1500 },
+      { name: "佩德羅薩", cat: "MotoGP", wealth: 28000000, growth: 400 },
+      { name: "巴格奈亞", cat: "MotoGP", wealth: 12000000, growth: 300 },
+      { name: "麥可·喬丹", cat: "體育傳奇", wealth: 3000000000, growth: 25000 },
+      { name: "科比(遺產信託)", cat: "體育傳奇", wealth: 600000000, growth: 1000 },
+      { name: "伍茲", cat: "高爾夫", wealth: 1100000000, growth: 8000 },
+      { name: "麥克羅伊", cat: "高爾夫", wealth: 170000000, growth: 2500 },
+      { name: "奧沙利文", cat: "斯諾克", wealth: 15000000, growth: 200 },
+      { name: "博爾特", cat: "田徑巨星", wealth: 90000000, growth: 1000 },
+      { name: "菲爾普斯", cat: "游泳巨星", wealth: 100000000, growth: 1200 },
+      { name: "蕾哈娜", cat: "流行音樂/美妝", wealth: 1400000000, growth: 18000 },
+      { name: "碧昂絲", cat: "流行音樂", wealth: 800000000, growth: 9000 },
+      { name: "Jay-Z", cat: "說唱/投資", wealth: 2500000000, growth: 20000 },
+      { name: "肯伊·威斯特", cat: "潮流時尚", wealth: 400000000, growth: 3000 },
+      { name: "艾迪爾", cat: "流行音樂", wealth: 220000000, growth: 2500 },
+      { name: "賈斯汀·比伯", cat: "流行音樂", wealth: 300000000, growth: 3000 },
+      { name: "艾莉西亞·凱斯", cat: "流行音樂", wealth: 150000000, growth: 1500 },
+      { name: "卡蒂·B", cat: "說唱歌手", wealth: 80000000, growth: 1000 },
+      { name: "威爾·史密斯", cat: "好萊塢巨星", wealth: 350000000, growth: 3000 },
+      { name: "李奧納多", cat: "好萊塢巨星", wealth: 300000000, growth: 2800 },
+      { name: "布萊德·彼特", cat: "好萊塢巨星", wealth: 400000000, growth: 3200 },
+      { name: "史特龍", cat: "動作巨星", wealth: 400000000, growth: 2000 },
+      { name: "阿諾·史瓦辛格", cat: "政商/影星", wealth: 450000000, growth: 2500 },
+      { name: "成龍", cat: "功夫巨星", wealth: 400000000, growth: 3000 },
+      { name: "甄子丹", cat: "功夫巨星", wealth: 50000000, growth: 800 },
+      { name: "周潤發", cat: "影壇巨星", wealth: 70000000, growth: 500 },
+      { name: "劉德華", cat: "演藝天王", wealth: 150000000, growth: 2000 },
+      { name: "梁朝偉", cat: "影帝", wealth: 60000000, growth: 600 },
+      { name: "金凱瑞", cat: "喜劇巨星", wealth: 180000000, growth: 1000 },
+      { name: "羅溫·艾金森(豆豆先生)", cat: "演藝名流", wealth: 150000000, growth: 1000 },
+      { name: "奧普拉", cat: "媒體女王", wealth: 2800000000, growth: 15000 },
+      { name: "休·傑克曼", cat: "好萊塢巨星", wealth: 180000000, growth: 1800 },
+      { name: "克里斯·漢斯沃", cat: "好萊塢巨星", wealth: 130000000, growth: 1500 },
+      { name: "斯佳麗·約翰遜", cat: "好萊塢巨星", wealth: 160000000, growth: 1600 },
+      { name: "蓋爾·加朵", cat: "好萊塢巨星", wealth: 40000000, growth: 600 },
+      { name: "艾瑪·華森", cat: "演藝/慈善", wealth: 85000000, growth: 800 },
+      { name: "休·格蘭特", cat: "演藝名流", wealth: 150000000, growth: 1000 },
+      { name: "莫迪", cat: "國家領袖", wealth: 3000000, growth: 50 },
+      { name: "特魯多", cat: "政治人物", wealth: 12000000, growth: 100 },
+      { name: "岸田文雄", cat: "政治人物", wealth: 5000000, growth: 50 },
+      { name: "澤倫斯基", cat: "國家領袖", wealth: 20000000, growth: 200 },
+      { name: "普丁", cat: "政要名流", wealth: 700000000, growth: 5000 },
+      { name: "英國王室信託", cat: "王室財產", wealth: 28000000000, growth: 100000 },
+      { name: "杜拜王室", cat: "王室財產", wealth: 18000000000, growth: 80000 },
+      { name: "沙烏地王室基金", cat: "主權基金", wealth: 100000000000, growth: 300000 },
+      { name: "哈利·波特作者羅琳", cat: "文學作家", wealth: 1000000000, growth: 8000 },
+      { name: "史蒂芬·金", cat: "文學作家", wealth: 500000000, growth: 3000 },
+      { name: "村上春樹", cat: "知名作家", wealth: 30000000, growth: 300 },
+      { name: "Gabe Newell (G胖)", cat: "電玩巨頭", wealth: 9500000000, growth: 40000 },
+      { name: "宮本茂", cat: "電玩大師", wealth: 40000000, growth: 400 },
+      { name: "小島秀夫", cat: "遊戲監督", wealth: 30000000, growth: 300 },
+      { name: "Faker", cat: "電競傳奇", wealth: 50000000, growth: 1000 },
+      { name: "PewDiePie", cat: "網紅Self-Made", wealth: 40000000, growth: 800 },
+      { name: "MrBeast", cat: "網紅企業家", wealth: 500000000, growth: 12000 },
+      { name: "網銀新手企業家", cat: "虛擬對手", wealth: 50, growth: 1 },
+      { name: "街角咖啡店老闆", cat: "虛擬對手", wealth: 500, growth: 3 },
+      { name: "初級股票投資人", cat: "虛擬對手", wealth: 5000, growth: 20 }
+    ];
+
+    let npcs = JSON.parse(JSON.stringify(baseNPCs));
+
+    function getCPC() { 
+      return Math.floor(baseCPC * multiplier * (1 + prestigePoints * 0.10)); 
+    }
+    function getCPS() { 
+      return Math.floor(baseCPS * multiplier * (1 + prestigePoints * 0.10)); 
+    }
+
+    function recalculateStats() {
+      baseCPC = 1;
+      baseCPS = 0;
+      multiplier = 1.0;
+      financialProducts.forEach(prod => {
+        baseCPC += prod.cpc * prod.count;
+        baseCPS += prod.cps * prod.count;
+        multiplier += prod.mult * prod.count;
+      });
+    }
+
+    // 連點極速優化點擊邏輯
+    const clickArea = document.getElementById('clickArea');
+
+    function handleClick(e) {
+      if (e.cancelable) e.preventDefault();
+      totalClicks++;
+      const gain = getCPC();
+      assets += gain;
+      
+      const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+      const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+      
+      const rect = clickArea.getBoundingClientRect();
+      const x = clientX || (rect.left + rect.width / 2);
+      const y = clientY || (rect.top + rect.height / 2);
+      
+      showClickEffect(x, y, `+$${gain}`);
+      checkAchievements();
+      updateDisplay();
+    }
+
+    // 使用 pointerdown 確保全平台無延遲響應，並處理手勢預防
+    clickArea.addEventListener('pointerdown', handleClick, { passive: false });
+    clickArea.addEventListener('touchstart', (e) => {
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+
+    // 跨轉優惠領次數按鈕
+    const transferBtn = document.getElementById('transferClaimBtn');
+    transferBtn.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      freeTransferCount++;
+      
+      if (freeTransferCount === 1) {
+        alert("[系統提示] 又不能轉帳，你領跨轉優惠要幹嘛？");
+      } else if (freeTransferCount === 50) {
+        alert("[系統提示] 你已經領了 50 次了... 這裡真的沒有轉帳介面啦！");
+      } else if (freeTransferCount === 200) {
+        alert("[系統提示] 連點器拿來刷這個？你的手指或自動化程式不累嗎...");
+      } else if (freeTransferCount === 500) {
+        alert("[系統提示] 恭喜你達成『無聊至極』隱藏成就！但我還是不會給你轉帳功能喔 🤪");
+      } else if (freeTransferCount === 1000) {
+        alert("[系統提示] 破千次了！銀行資料庫都被你塞滿垃圾數據了，算你狠！");
+      }
+
+      checkAchievements();
+      updateDisplay();
+    });
+
+    function showClickEffect(x, y, text) {
+      const el = document.createElement('div');
+      el.className = 'click-effect';
+      el.innerText = text;
+      el.style.left = `${x - 20}px`;
+      el.style.top = `${y - 30}px`;
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 400);
+    }
+
+    function buyProduct(index) {
+      const prod = financialProducts[index];
+      if (assets >= prod.cost) {
+        assets -= prod.cost;
+        prod.count++;
+        prod.cost = Math.floor(prod.cost * 1.15);
+        recalculateStats();
+        renderShop();
+        updateDisplay();
+      }
+    }
+
+    function doPrestige() {
+      const pending = Math.floor(assets / 10000000000);
+      if (pending < 1) return;
+
+      if (confirm(`確定要創立金融集團嗎？\n這將會重置您的資產與理財商品，但您將獲得 ${pending} 點金融聲望 (收益永久 +${pending * 10}%)！`)) {
+        prestigePoints += pending;
+        assets = 0;
+        financialProducts = JSON.parse(JSON.stringify(defaultProducts));
+        recalculateStats();
+        checkAchievements();
+        renderShop();
+        updateDisplay();
+        alert(`🎉 恭喜創立金融集團！目前累積金融聲望：${prestigePoints} 點`);
+      }
+    }
+
+    function updatePlayerName() {
+      const input = document.getElementById('playerNameInput');
+      if (input.value.trim() !== "") {
+        playerName = input.value.trim();
+        document.getElementById('greetingText').innerText = `午安，${playerName}`;
+        saveGame(false);
+        renderLeaderboard();
+      }
+    }
+
+    function equipTitle(title) {
+      equippedTitle = title;
+      const badge = document.getElementById('equippedTitleBadge');
+      if (equippedTitle) {
+        badge.innerText = equippedTitle;
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+      renderAchievements();
+      saveGame(false);
+    }
+
+    function checkAchievements() {
+      let list = npcs.map(npc => ({ wealth: npc.wealth }));
+      list.push({ wealth: assets });
+      list.sort((a, b) => b.wealth - a.wealth);
+      const playerRank = list.findIndex(item => item.wealth === assets) + 1;
+
+      achievementDefs.forEach(ach => {
+        if (!unlockedAchievements.includes(ach.id)) {
+          let pass = false;
+          if (ach.reqType === "clicks" && totalClicks >= ach.reqVal) pass = true;
+          if (ach.reqType === "assets" && assets >= ach.reqVal) pass = true;
+          if (ach.reqType === "transfer" && freeTransferCount >= ach.reqVal) pass = true;
+          if (ach.reqType === "rank" && playerRank <= ach.reqVal) pass = true;
+          if (ach.reqType === "prestige" && prestigePoints >= ach.reqVal) pass = true;
+
+          if (pass) {
+            unlockedAchievements.push(ach.id);
+            alert(`🏅 恭喜解鎖成就：【${ach.title}】！獲得稱號：«${ach.rewardTitle}»`);
+          }
+        }
+      });
+    }
+
+    function updateDisplay() {
+      document.getElementById('totalAssets').innerText = `$ ${assets.toLocaleString()}`;
+      document.getElementById('subAssets').innerText = `$ ${assets.toLocaleString()}`;
+      document.getElementById('cpsDisplay').innerText = `$ ${getCPS().toLocaleString()} /s`;
+      document.getElementById('cpcDisplay').innerText = `$ ${getCPC().toLocaleString()}`;
+      document.getElementById('transferCountDisplay').innerText = freeTransferCount.toLocaleString();
+      document.getElementById('prestigePointsDisplay').innerText = prestigePoints.toLocaleString();
+
+      const pendingPrestige = Math.floor(assets / 10000000000);
+      document.getElementById('pendingPrestigeDisplay').innerText = pendingPrestige.toLocaleString();
+      document.getElementById('prestigeBtn').disabled = pendingPrestige < 1;
+
+      financialProducts.forEach((prod, i) => {
+        const btn = document.getElementById(`buy-btn-${i}`);
+        if (btn) btn.disabled = assets < prod.cost;
+      });
+    }
+
+    function renderShop() {
+      const container = document.getElementById('shopList');
+      container.innerHTML = '';
+      financialProducts.forEach((prod, i) => {
+        const item = document.createElement('div');
+        item.className = 'shop-item';
+        item.innerHTML = `
+          <div class="item-info">
+            <div class="item-name">${prod.name}</div>
+            <div class="item-desc">${prod.desc}</div>
+            <div class="item-cost">申購價: $ ${prod.cost.toLocaleString()}</div>
+          </div>
+          <div>
+            <button id="buy-btn-${i}" class="buy-btn" onclick="buyProduct(${i})" ${assets < prod.cost ? 'disabled' : ''}>
+              申購
+            </button>
+            <div class="item-count">已持有: ${prod.count}</div>
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderLeaderboard() {
+      const container = document.getElementById('leaderboardList');
+      if (!container) return;
+
+      let list = npcs.map(npc => ({ name: npc.name, cat: npc.cat, wealth: npc.wealth, isPlayer: false }));
+      list.push({ name: playerName, cat: "您", wealth: assets, isPlayer: true });
+      list.sort((a, b) => b.wealth - a.wealth);
+
+      const playerIndex = list.findIndex(item => item.isPlayer);
+      const playerRank = playerIndex + 1;
+
+      const statusEl = document.getElementById('playerRankStatus');
+      if (playerRank === 1) {
+        statusEl.innerText = `🎉 恭喜！您目前高居全球富豪榜 第 1 名！`;
+      } else {
+        const diff = list[playerIndex - 1].wealth - assets;
+        statusEl.innerText = `目前排名：第 ${playerRank} 名（距離上一名還差 $${diff.toLocaleString()}）`;
+      }
+
+      container.innerHTML = '';
+      list.forEach((item, index) => {
+        const rank = index + 1;
+        const row = document.createElement('div');
+        row.className = `leaderboard-item ${item.isPlayer ? 'is-player' : ''}`;
+        row.innerHTML = `
+          <div class="rank-num ${rank <= 3 ? 'top3' : ''}">${rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank}</div>
+          <div class="leaderboard-info">
+            <span class="leaderboard-name">${item.name}</span>
+            <span class="leaderboard-category">(${item.cat})</span>
+          </div>
+          <div class="leaderboard-wealth">$ ${Math.floor(item.wealth).toLocaleString()}</div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function renderAchievements() {
+      const container = document.getElementById('achievementList');
+      if (!container) return;
+
+      container.innerHTML = '';
+      achievementDefs.forEach(ach => {
+        const isUnlocked = unlockedAchievements.includes(ach.id);
+        const isEquipped = equippedTitle === ach.rewardTitle;
+
+        const item = document.createElement('div');
+        item.className = 'achievement-item';
+        item.innerHTML = `
+          <div class="achievement-icon">${isUnlocked ? '🏅' : '🔒'}</div>
+          <div class="achievement-info">
+            <div class="achievement-title">${ach.title} <span style="font-size:11px; color:#00a88f;">[稱號: ${ach.rewardTitle}]</span></div>
+            <div class="achievement-desc">${ach.desc}</div>
+          </div>
+          <div>
+            ${isUnlocked 
+              ? `<button class="buy-btn" style="${isEquipped ? 'background:#666;' : ''}" onclick="equipTitle('${ach.rewardTitle}')">${isEquipped ? '佩戴中' : '佩戴'}</button>`
+              : `<span class="achievement-status">未解鎖</span>`
+            }
+          </div>
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function switchTab(tabName, el) {
+      document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+
+      if (tabName === 'home') document.getElementById('tab-home').classList.add('active');
+      else if (tabName === 'shop') {
+        document.getElementById('tab-shop').classList.add('active');
+        renderShop();
+      } else if (tabName === 'rank') {
+        document.getElementById('tab-rank').classList.add('active');
+        document.getElementById('playerNameInput').value = playerName;
+        renderLeaderboard();
+      } else if (tabName === 'achievement') {
+        document.getElementById('tab-achievement').classList.add('active');
+        renderAchievements();
+      }
+
+      el.classList.add('active');
+    }
+
+    function fakeAction(msg) {
+      alert(`[系統提示] ${msg}功能正常運作中。`);
+    }
+
+    function saveGame(showNotice = false) {
+      const saveData = {
+        playerName: playerName,
+        assets: assets,
+        totalClicks: totalClicks,
+        prestigePoints: prestigePoints,
+        freeTransferCount: freeTransferCount,
+        equippedTitle: equippedTitle,
+        unlockedAchievements: unlockedAchievements,
+        products: financialProducts,
+        npcs: npcs
+      };
+      localStorage.setItem('bank_game_save', JSON.stringify(saveData));
+      if (showNotice) alert("網銀系統資料已成功同步至本地端 (存檔成功)");
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem('bank_game_save');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.playerName) {
+            playerName = data.playerName;
+            document.getElementById('greetingText').innerText = `午安，${playerName}`;
+          }
+          assets = data.assets || 0;
+          totalClicks = data.totalClicks || 0;
+          prestigePoints = data.prestigePoints || 0;
+          freeTransferCount = data.freeTransferCount || 0;
+          equippedTitle = data.equippedTitle || "";
+          unlockedAchievements = data.unlockedAchievements || [];
+
+          if (equippedTitle) {
+            const badge = document.getElementById('equippedTitleBadge');
+            badge.innerText = equippedTitle;
+            badge.style.display = "inline-block";
+          }
+
+          if (data.products) {
+            data.products.forEach((p, i) => {
+              if (financialProducts[i]) {
+                financialProducts[i].count = p.count;
+                financialProducts[i].cost = p.cost;
+              }
+            });
+          }
+          if (data.npcs && data.npcs.length === baseNPCs.length) {
+            npcs = data.npcs;
+          }
+          recalculateStats();
+        } catch (e) {
+          console.error("讀檔失敗", e);
+        }
+      }
+    }
+
+    function resetGame() {
+      if (confirm("確定要重置帳戶資料嗎？所有資產、商品與成就將清空。")) {
+        localStorage.removeItem('bank_game_save');
+        playerName = "尊榮貴賓";
+        assets = 0;
+        totalClicks = 0;
+        prestigePoints = 0;
+        freeTransferCount = 0;
+        equippedTitle = "";
+        unlockedAchievements = [];
+        financialProducts = JSON.parse(JSON.stringify(defaultProducts));
+        npcs = JSON.parse(JSON.stringify(baseNPCs));
+        
+        document.getElementById('greetingText').innerText = `午安，${playerName}`;
+        document.getElementById('equippedTitleBadge').style.display = "none";
+        
+        recalculateStats();
+        renderShop();
+        updateDisplay();
+      }
+    }
+
+    setInterval(() => {
+      assets += getCPS();
+
+      npcs.forEach(npc => {
+        npc.wealth += npc.growth * (0.8 + Math.random() * 0.4);
+      });
+
+      checkAchievements();
+      updateDisplay();
+
+      if (document.getElementById('tab-rank').classList.contains('active')) {
+        renderLeaderboard();
+      }
+    }, 1000);
+
+    setInterval(() => {
+      saveGame(false);
+    }, 5000);
+
+    loadGame();
+    updateDisplay();
+  </script>
+</body>
+</html>
